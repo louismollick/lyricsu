@@ -52,7 +52,7 @@ const isTokenExpired = (
   typeof spotifySession?.refresh_token === "string" &&
   spotifySession.expires_at * 1000 < Date.now();
 
-const refreshSession = async (
+const getRefreshedAccessToken = async (
   spotifySession: Ensure<Account, "expires_at" | "refresh_token">,
   userId: string,
 ) => {
@@ -122,7 +122,7 @@ export const authOptions: NextAuthOptions = {
       return {
         ...session,
         accessToken: isTokenExpired(spotifySession)
-          ? refreshSession(spotifySession, user.id)
+          ? getRefreshedAccessToken(spotifySession, user.id)
           : spotifySession?.access_token,
         user: {
           ...session.user,
