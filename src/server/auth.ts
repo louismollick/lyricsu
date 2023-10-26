@@ -1,5 +1,6 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, eq } from "drizzle-orm";
+import { type TokenSet } from "@auth/core/types";
 import {
   getServerSession,
   type DefaultSession,
@@ -9,7 +10,7 @@ import SpotifyProvider from "next-auth/providers/spotify";
 
 import { env } from "~/env.mjs";
 import { db } from "~/server/db";
-import { accounts, mysqlTable } from "~/server/db/schema";
+import { type Account, accounts, mysqlTable } from "~/server/db/schema";
 
 const SPOTIFY_SCOPES =
   "streaming user-read-email user-read-private user-read-playback-state user-library-read user-library-modify"
@@ -38,6 +39,67 @@ declare module "next-auth" {
   // }
 }
 
+type RequiredNotNull<T> = {
+  [P in keyof T]: NonNullable<T[P]>;
+};
+
+type Ensure<T, K extends keyof T> = T & RequiredNotNull<Pick<T, K>>;
+
+const isTokenExpired = (
+  spotifySession: Pick<Account, "expires_at" | "refresh_token"> | undefined,
+): spotifySession is Ensure<Account, "expires_at" | "refresh_token"> =>
+  typeof spotifySession?.expires_at === "number" &&
+  typeof spotifySession?.refresh_token === "string" &&
+  spotifySession.expires_at * 1000 < Date.now();
+
+const refreshSession = async (
+  spotifySession: Ensure<Account, "expires_at" | "refresh_token">,
+  userId: string,
+) => {
+  try {
+    const refreshResponse = await fetch(
+      "https://accounts.spotify.com/api/token",
+      {
+        method: "POST",
+        headers: {
+          Authorization:
+            "Basic " +
+            Buffer.from(
+              `${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`,
+            ).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: spotifySession.refresh_token,
+          client_id: env.SPOTIFY_CLIENT_ID,
+        }),
+      },
+    );
+
+    if (!refreshResponse.ok) throw refreshResponse;
+
+    const refreshedSession = (await refreshResponse.json()) as TokenSet;
+
+    await db
+      .update(accounts)
+      .set({
+        access_token: refreshedSession.access_token,
+        expires_at: Math.floor(Date.now() / 1000 + (refreshedSession.expires_in ?? 0)),
+        refresh_token:
+          refreshedSession.refresh_token ?? spotifySession.refresh_token,
+      })
+      .where(
+        and(eq(accounts.userId, userId), eq(accounts.provider, "spotify")),
+      );
+
+    return refreshedSession?.access_token;
+  } catch (error) {
+    console.error("Something went wrong when refreshing a token", error);
+    throw error;
+  }
+};
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -46,8 +108,12 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user }) => {
-      const [result] = await db
-        .select({ accessToken: accounts.access_token })
+      const [spotifySession] = await db
+        .select({
+          access_token: accounts.access_token,
+          refresh_token: accounts.refresh_token,
+          expires_at: accounts.expires_at,
+        })
         .from(accounts)
         .where(
           and(eq(accounts.userId, user.id), eq(accounts.provider, "spotify")),
@@ -55,7 +121,9 @@ export const authOptions: NextAuthOptions = {
 
       return {
         ...session,
-        accessToken: result?.accessToken,
+        accessToken: isTokenExpired(spotifySession)
+          ? refreshSession(spotifySession, user.id)
+          : spotifySession?.access_token,
         user: {
           ...session.user,
           id: user.id,
