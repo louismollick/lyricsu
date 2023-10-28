@@ -5,6 +5,7 @@ import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  type Session,
 } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 
@@ -25,7 +26,8 @@ const SPOTIFY_SCOPES =
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    accessToken: string;
+    spotifyToken: string | null;
+    spotifyExpiresAt: number | null;
     user: {
       id: string;
       // ...other properties
@@ -39,23 +41,31 @@ declare module "next-auth" {
   // }
 }
 
-type RequiredNotNull<T> = {
-  [P in keyof T]: NonNullable<T[P]>;
-};
+// type RequiredNotNull<T> = {
+//   [P in keyof T]: NonNullable<T[P]>;
+// };
 
-type Ensure<T, K extends keyof T> = T & RequiredNotNull<Pick<T, K>>;
+// type Ensure<T, K extends keyof T> = T & RequiredNotNull<Pick<T, K>>;
 
-const isTokenExpired = (
-  spotifySession: Pick<Account, "expires_at" | "refresh_token"> | undefined,
-): spotifySession is Ensure<Account, "expires_at" | "refresh_token"> =>
-  typeof spotifySession?.expires_at === "number" &&
-  typeof spotifySession?.refresh_token === "string" &&
-  spotifySession.expires_at * 1000 < Date.now();
+type Nullable<T> = { [P in keyof T]: T[P] | null };
 
-const getRefreshedToken = async (
-  spotifySession: Ensure<Account, "expires_at" | "refresh_token">,
+export const refreshTokenIfNeeded = async (
   userId: string,
+  spotifySession?: Nullable<
+    Pick<Account, "access_token" | "refresh_token" | "expires_at">
+  >,
 ) => {
+  if (
+    spotifySession == null ||
+    typeof spotifySession.expires_at !== "number" ||
+    typeof spotifySession.refresh_token !== "string"
+  ) {
+    return null;
+  }
+
+  if (spotifySession.expires_at * 1000 >= Date.now())
+    return spotifySession.access_token;
+
   try {
     const refreshResponse = await fetch(
       "https://accounts.spotify.com/api/token",
@@ -72,7 +82,6 @@ const getRefreshedToken = async (
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: spotifySession.refresh_token,
-          client_id: env.SPOTIFY_CLIENT_ID,
         }),
       },
     );
@@ -121,16 +130,17 @@ export const authOptions: NextAuthOptions = {
           and(eq(accounts.userId, user.id), eq(accounts.provider, "spotify")),
         );
 
+      const spotifyToken = await refreshTokenIfNeeded(user.id, spotifySession);
+
       return {
         ...session,
-        accessToken: isTokenExpired(spotifySession)
-          ? getRefreshedToken(spotifySession, user.id)
-          : spotifySession?.access_token,
+        spotifyToken,
+        spotifyExpiresAt: spotifySession?.expires_at ?? null,
         user: {
           ...session.user,
           id: user.id,
         },
-      };
+      } as Session;
     },
   },
   adapter: DrizzleAdapter(db, mysqlTable),

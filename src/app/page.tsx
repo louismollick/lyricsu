@@ -50,7 +50,6 @@ export default async function Home() {
         </div>
         <div className="mt-auto">
           <Player
-            accessToken={session?.accessToken ?? ""}
             trackUri={`spotify:track:6n9AvpTLSNunpIr2Gr2AXa`} //${currentTrack.spotifyId}
           />
         </div>
