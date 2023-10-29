@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import ClientProviders from "./clientProviders";
+import { cn } from "~/lib/utils";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +25,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable}`}>
+      <body
+        className={cn(
+          "bg-background dark relative flex h-screen flex-col font-sans antialiased",
+          inter.variable,
+        )}
+      >
         <TRPCReactProvider headers={headers()}>
           <ClientProviders>{children}</ClientProviders>
         </TRPCReactProvider>

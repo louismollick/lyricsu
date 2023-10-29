@@ -11,7 +11,6 @@ export default function Player({ trackUri }: { trackUri?: string }) {
   useEffect(() => setPlay(true), [trackUri]);
 
   const getOAuthToken: Props["getOAuthToken"] = async (callback) => {
-    console.log("getOAuthToken");
     if (
       typeof session?.spotifyExpiresAt !== "number" ||
       typeof session?.spotifyToken !== "string"
