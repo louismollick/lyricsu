@@ -14,7 +14,7 @@ import { db } from "~/server/db";
 import { type Account, accounts, mysqlTable } from "~/server/db/schema";
 
 const SPOTIFY_SCOPES =
-  "streaming user-read-email user-read-private user-read-playback-state user-library-read user-library-modify"
+  "streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-library-read user-library-modify"
     .split(" ")
     .join(",");
 
@@ -26,8 +26,8 @@ const SPOTIFY_SCOPES =
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    spotifyToken: string | null;
-    spotifyExpiresAt: number | null;
+    spotifyToken?: string;
+    spotifyExpiresAt?: number;
     user: {
       id: string;
       // ...other properties
@@ -67,6 +67,7 @@ export const refreshTokenIfNeeded = async (
     return spotifySession.access_token;
 
   try {
+    console.log("Refreshing expired Spotify token...");
     const refreshResponse = await fetch(
       "https://accounts.spotify.com/api/token",
       {

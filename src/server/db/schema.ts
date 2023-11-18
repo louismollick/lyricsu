@@ -1,10 +1,10 @@
 import { relations, sql } from "drizzle-orm";
 import {
-  bigint,
   index,
   int,
   mysqlTableCreator,
   primaryKey,
+  serial,
   text,
   timestamp,
   varchar,
@@ -19,22 +19,44 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const mysqlTable = mysqlTableCreator((name) => `lyricsu_${name}`);
 
-export const posts = mysqlTable(
-  "post",
+export const lyrics = mysqlTable(
+  "lyrics",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-    name: varchar("name", { length: 256 }),
-    createdById: varchar("createdById", { length: 255 }).notNull(),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    id: serial("id").primaryKey(),
+    syncType: varchar("sync_type", { length: 255 }),
+    spotifyTrackId: varchar("spotify_track_id", { length: 255 })
+      .notNull()
+      .unique(),
   },
-  (example) => ({
-    createdByIdIdx: index("createdById_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
-  })
+  (lyrics) => ({
+    spotifyTrackIdIdx: index("spotify_track_id_idx").on(lyrics.spotifyTrackId),
+  }),
 );
+
+export const lyricsRelations = relations(lyrics, ({ many }) => ({
+  lines: many(lines),
+}));
+
+// id3 format from https://github.com/akashrchandran/spotify-lyrics-api
+export const lines = mysqlTable(
+  "lyrics_line",
+  {
+    lyricsId: varchar("lyrics_id", { length: 255 }).notNull(),
+    lineNumber: int("line_number").notNull(),
+    startTimeMs: int("start_time_ms").notNull().default(0),
+    words: varchar("words", { length: 255 }).notNull(),
+  },
+  (line) => ({
+    compoundKey: primaryKey(line.lyricsId, line.lineNumber),
+  }),
+);
+
+export const linesRelations = relations(lines, ({ one }) => ({
+  lyric: one(lyrics, {
+    fields: [lines.lyricsId],
+    references: [lyrics.id],
+  }),
+}));
 
 export const users = mysqlTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -71,7 +93,7 @@ export const accounts = mysqlTable(
   (account) => ({
     compoundKey: primaryKey(account.provider, account.providerAccountId),
     userIdIdx: index("userId_idx").on(account.userId),
-  })
+  }),
 );
 
 export type Account = typeof accounts.$inferSelect;
@@ -91,7 +113,7 @@ export const sessions = mysqlTable(
   },
   (session) => ({
     userIdIdx: index("userId_idx").on(session.userId),
-  })
+  }),
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -107,5 +129,5 @@ export const verificationTokens = mysqlTable(
   },
   (vt) => ({
     compoundKey: primaryKey(vt.identifier, vt.token),
-  })
+  }),
 );

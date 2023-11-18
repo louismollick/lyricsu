@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { headers } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
-import ClientProviders from "./clientProviders";
+import ClientProviders from "../components/clientProviders";
 import { cn } from "~/lib/utils";
 
 const inter = Inter({
