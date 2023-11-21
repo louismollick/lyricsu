@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 export default function Player({ trackUri }: { trackUri?: string }) {
   const { togglePlay, paused } = useSpotifyPlayer();
   return (
-    <Button onClick={() => togglePlay(trackUri)}>
+    <Button className="mt-auto" onClick={() => togglePlay(trackUri)}>
       {paused ? "Play" : "Pause"}
     </Button>
   );

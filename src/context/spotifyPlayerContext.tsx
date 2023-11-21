@@ -85,7 +85,7 @@ function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
     INITIAL_PLAYBACKSTATE.track_window,
   );
   const spotifyPlayer = useRef<Spotify.Player>();
-  const { data: session, status, update } = useSession();
+  const { data: session, update } = useSession();
 
   const { startInterval, stopInterval: stopUpdatingPosition } = useInterval();
   const startUpdatingPosition = useCallback(
@@ -169,7 +169,8 @@ function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
       console.error("playback_error");
     });
     void spotifyPlayer.current.connect().then((success) => {
-      console.info(`Spotify Web Playback SDK connect success? ${success}`);
+      if (success)
+        console.info("The Web Playback SDK successfully connected to Spotify!");
     });
   }, [
     session?.spotifyExpiresAt,
@@ -180,7 +181,7 @@ function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.spotifyToken) return;
+    if (!session?.spotifyToken) return;
 
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
@@ -207,19 +208,27 @@ function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
       spotifyPlayer.current?.removeListener("ready");
       spotifyPlayer.current?.disconnect();
     };
-  }, [initPlayer, session?.spotifyToken, status, stopUpdatingPosition]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.spotifyToken]);
 
   const togglePlay = useCallback(
     async (uris?: string | string[]) => {
       if (!device_id || !session?.spotifyToken) return;
-      if (spotifyPlayer.current) await spotifyPlayer.current?.activateElement();
+      await spotifyPlayer.current?.activateElement();
+      const playbackState = await spotifyPlayer.current?.getCurrentState();
+
       if (paused) {
-        if (uris)
+        if (
+          playbackState?.track_window.current_track.uri !== uris ||
+          !spotifyPlayer.current
+        ) {
           await play(device_id, {
             accessToken: session.spotifyToken,
             uris,
           });
-        await spotifyPlayer.current?.resume();
+        } else {
+          await spotifyPlayer.current?.resume();
+        }
       } else {
         await spotifyPlayer.current?.pause();
       }

@@ -31,6 +31,7 @@ export const env = createEnv({
     // Add ` on ID and SECRET if you want to make sure they're not empty
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
+    SPOTIFY_SP_DC: z.string(),
   },
 
   /**
@@ -53,6 +54,7 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+    SPOTIFY_SP_DC: process.env.SPOTIFY_SP_DC,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
