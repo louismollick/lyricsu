@@ -18,8 +18,8 @@ type PlaybackState = Pick<
   "paused" | "position" | "track_window"
 > & {
   device_id?: string;
-  //active: boolean;
   togglePlay: (uris?: string | string[]) => Promise<void>;
+  seek: (timeMs: number) => Promise<void>;
 };
 
 const INITIAL_PLAYBACKSTATE: PlaybackState = {
@@ -71,11 +71,14 @@ const INITIAL_PLAYBACKSTATE: PlaybackState = {
   togglePlay: async () => {
     //empty
   },
+  seek: async () => {
+    //empty
+  },
 };
 
 const SpotifyPlayerContext = createContext(INITIAL_PLAYBACKSTATE);
 
-const TICK_INTERVAL = 1000; // ms
+const TICK_INTERVAL = 200; // ms
 
 function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
   const [paused, setPaused] = useState(true);
@@ -236,9 +239,14 @@ function SpotifyPlayerProvider({ children }: { children: React.ReactNode }) {
     [device_id, paused, session?.spotifyToken],
   );
 
+  const seek = async (timeMs: number) => {
+    setPosition(timeMs);
+    await spotifyPlayer.current?.seek(timeMs);
+  };
+
   return (
     <SpotifyPlayerContext.Provider
-      value={{ paused, position, track_window, togglePlay }}
+      value={{ paused, position, track_window, togglePlay, seek }}
     >
       {children}
     </SpotifyPlayerContext.Provider>

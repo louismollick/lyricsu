@@ -2,9 +2,9 @@ import Link from "next/link";
 import { getServerAuthSession } from "~/server/auth";
 import { type Metadata } from "next";
 import { Button } from "~/components/ui/button";
-import ScrollingLyrics from "~/components/scrollingLyrics";
 import Player from "~/components/player";
 import { api } from "~/trpc/server";
+import ScrollingLyrics from "~/components/scrollingLyrics";
 
 export const metadata: Metadata = {
   title: "Lyricsu",
@@ -31,11 +31,11 @@ export default async function Lyrics({
     );
   }
 
+  if (!lyrics) return "No Lyrics";
+
   return (
     <>
-      <div className="container h-full min-h-0 py-12">
-        <ScrollingLyrics lyrics={lyrics} />
-      </div>
+      <ScrollingLyrics lyrics={lyrics} />
       <Player trackUri={`spotify:track:${trackId}`} />
     </>
   );
