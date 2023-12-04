@@ -30,22 +30,9 @@ declare module "next-auth" {
     spotifyExpiresAt?: number;
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
-
-// type RequiredNotNull<T> = {
-//   [P in keyof T]: NonNullable<T[P]>;
-// };
-
-// type Ensure<T, K extends keyof T> = T & RequiredNotNull<Pick<T, K>>;
 
 type Nullable<T> = { [P in keyof T]: T[P] | null };
 

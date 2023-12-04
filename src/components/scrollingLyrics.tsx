@@ -36,7 +36,10 @@ export default function ScrollingLyrics({
   }, [lyrics.lines, position]);
 
   return (
-    <ScrollArea className="h-full rounded-md border p-4">
+    <ScrollArea
+      className="flex h-full rounded-md border p-4"
+      viewportClassName="before:block before:h-[calc(50%-30px)] before:content-[''] after:block after:h-[calc(50%-30px)] after:content-['']"
+    >
       {lyrics?.lines.map((line) => (
         <button
           key={line.lineNumber}
