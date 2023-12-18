@@ -43,10 +43,11 @@ export default function ScrollingLyrics({
       {lyrics?.lines.map((line) => (
         <button
           key={line.lineNumber}
-          className={cn("block select-text text-6xl", {
-            "text-7xl": line.lineNumber === activeLineNumber,
+          className={cn("block select-text text-6xl text-slate-700", {
+            "text-text-white": line.lineNumber === activeLineNumber,
           })}
           onClick={(e) => {
+            if (line.lineNumber === activeLineNumber) return;
             e.stopPropagation();
             void seek(Number(line.startTimeMs));
           }}
