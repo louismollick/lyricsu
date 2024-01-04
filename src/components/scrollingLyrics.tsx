@@ -1,29 +1,26 @@
 "use client";
 import { useSpotifyPlayer } from "~/context/spotifyPlayerContext";
 import { ScrollArea } from "./ui/scroll-area";
-import { type lines, type lyrics } from "~/server/db/schema";
 import { cn } from "~/lib/utils";
 import { useEffect, useRef, useState } from "react";
-
-export type LyricsWithLines = typeof lyrics.$inferSelect & {
-  lines: (typeof lines.$inferSelect)[];
-};
+import { type LyricsRouter } from "~/server/api/routers/lyrics";
+import { type inferRouterOutputs } from "@trpc/server";
 
 export default function ScrollingLyrics({
   lyrics,
 }: {
-  lyrics: LyricsWithLines;
+  lyrics: inferRouterOutputs<LyricsRouter>["getByTrackId"];
 }) {
   const { position, seek } = useSpotifyPlayer();
   const [activeLineNumber, setActiveLineNumber] = useState(-1);
-  const itemsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
+  const itemsRef = useRef<Map<number, HTMLElement>>(new Map());
 
   useEffect(() => {
     const newActiveLineNumber = lyrics.lines.findIndex((l, i) => {
-      const lyricHasStarted = l.startTimeMs <= position;
-      const nextLyricHasNotStarted =
+      const lineHasStarted = l.startTimeMs <= position;
+      const nextLineHasntStarted =
         (lyrics.lines[i + 1]?.startTimeMs ?? Infinity) > position;
-      return lyricHasStarted && nextLyricHasNotStarted;
+      return lineHasStarted && nextLineHasntStarted;
     });
     if (newActiveLineNumber === activeLineNumber) return;
     itemsRef.current.get(newActiveLineNumber)?.scrollIntoView({
@@ -33,15 +30,15 @@ export default function ScrollingLyrics({
     });
     setActiveLineNumber(newActiveLineNumber);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lyrics.lines, position]);
+  }, [lyrics.lines.length, position]);
 
   return (
     <ScrollArea
       className="flex h-full rounded-md border p-4"
       viewportClassName="before:block before:h-[calc(50%-30px)] before:content-[''] after:block after:h-[calc(50%-30px)] after:content-['']"
     >
-      {lyrics?.lines.map((line) => (
-        <button
+      {lyrics.lines.map((line) => (
+        <span
           key={line.lineNumber}
           className={cn("block select-text text-6xl text-slate-700", {
             "text-text-white": line.lineNumber === activeLineNumber,
@@ -57,8 +54,27 @@ export default function ScrollingLyrics({
             else itemsRef.current.delete(line.lineNumber);
           }}
         >
-          {line.words}
-        </button>
+          {line.segmentation.map((wordChain, chainIdx) => {
+            if (typeof wordChain === "string")
+              return <span key={`chain-${chainIdx}`}>{wordChain}</span>;
+
+            const [[words]] = wordChain;
+            return words.map((word, wordIdx) => {
+              const [romanji, wordAlternatives] = word;
+
+              const wordReading =
+                "alternative" in wordAlternatives
+                  ? wordAlternatives.alternative[0] // just take the first one
+                  : wordAlternatives;
+
+              return (
+                <span
+                  key={`chain-${chainIdx}-word-${wordIdx}`}
+                >{`${wordReading?.text} (${romanji})`}</span>
+              );
+            });
+          }) ?? "An issue occured with displaying segmented lyric line."}
+        </span>
       ))}
     </ScrollArea>
   );
