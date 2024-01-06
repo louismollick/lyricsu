@@ -1,4 +1,4 @@
-import { TRPCError } from "@trpc/server";
+import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getLyricsPlusSegmentation } from "~/lib/ichiran";
@@ -69,3 +69,6 @@ export const lyricsRouter = createTRPCRouter({
 });
 
 export type LyricsRouter = typeof lyricsRouter;
+export type LyricsWithSegmentedLines =
+  inferRouterOutputs<LyricsRouter>["getByTrackId"];
+export type SegmentedLine = LyricsWithSegmentedLines["lines"][number];

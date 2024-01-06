@@ -25,6 +25,9 @@ export type WordReading = {
   seq?: number;
   gloss?: Gloss[];
   conj?: Conj[];
+  compound?: string[];
+  components?: WordReading[];
+  suffix?: string;
 };
 
 export type Gloss = {
