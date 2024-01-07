@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 import "~/styles/globals.css";
 
 import { Inter } from "next/font/google";
@@ -29,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "dark relative flex h-screen flex-col bg-background font-sans antialiased",
+          "bg-background dark relative flex h-screen flex-col font-sans antialiased",
           inter.variable,
         )}
       >
