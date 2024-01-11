@@ -1,33 +1,32 @@
-import { TRPCError } from "@trpc/server";
-import { env } from "~/env.mjs";
 import { type lyrics, type lines } from "~/server/db/schema";
 import { type IchiranResponse } from "~/types/ichiran";
+import childProcess from "child_process";
+import path from "path";
 
 export type LyricsWithLines = typeof lyrics.$inferSelect & {
   lines: (typeof lines.$inferSelect)[];
 };
 
-export const getSentenceSegmentation = async (sentence: string) => {
-  const url = `${env.ICHIRAN_URL}/${encodeURI(sentence)}`;
+export const getSentenceSegmentation = (sentence: string) => {
+  const cmd = path.join(process.cwd(), "src/lib/ichiran-cli");
+  const output = childProcess.spawnSync(cmd, ["-f", sentence], {
+    encoding: "utf8",
+  });
 
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      cause: `${url} ${res.status} ${res.statusText}`,
-    });
+  if (output.error) {
+    console.log("NORMAL ERROR: " + JSON.stringify(output.error));
+    return [];
   }
-
-  return (await res.json()) as IchiranResponse;
+  console.log("NORMAL OUTPUT: " + JSON.stringify(output.stdout));
+  return JSON.parse(output.stdout) as IchiranResponse;
 };
 
 export const getLyricsPlusSegmentation = async (lyrics: LyricsWithLines) => ({
   ...lyrics,
   lines: await Promise.all(
-    lyrics.lines.map(async (line) => ({
+    lyrics.lines.map((line) => ({
       ...line,
-      segmentation: await getSentenceSegmentation(line.words),
+      segmentation: getSentenceSegmentation(line.words),
     })),
   ),
 });
