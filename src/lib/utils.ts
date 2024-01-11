@@ -9,10 +9,10 @@ export const isNumber = (input: unknown): input is number =>
 export const isString = (input: unknown): input is string =>
   typeof input === "string";
 
-export const safeJsonParse = <T>(str: string) => {
+export const safeJsonParse = <T>(str: string, fallback?: T) => {
   try {
     return JSON.parse(str) as T;
   } catch {
-    return undefined;
+    return fallback as T;
   }
 };

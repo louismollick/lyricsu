@@ -21,7 +21,7 @@ export const getSentenceSegmentation = (sentence: string) => {
 
   console.log("NORMAL OUTPUT: " + JSON.stringify(output));
   console.log("NORMAL STDOUT: " + JSON.stringify(output.stdout));
-  return safeJsonParse<IchiranResponse>(output.stdout);
+  return safeJsonParse<IchiranResponse>(output.stdout, []);
 };
 
 export const getLyricsPlusSegmentation = async (lyrics: LyricsWithLines) => ({

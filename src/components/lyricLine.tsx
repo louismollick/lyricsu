@@ -31,28 +31,30 @@ export default forwardRef<Ref, Props>(function LyricLine(
       dir="auto"
       ref={ref}
     >
-      {line.segmentation.map((wordChain, chainIdx) => {
-        if (typeof wordChain === "string")
-          return <span key={`chain-${chainIdx}`}>{wordChain}</span>;
+      {line.segmentation.length
+        ? line.segmentation.map((wordChain, chainIdx) => {
+            if (typeof wordChain === "string")
+              return <span key={`chain-${chainIdx}`}>{wordChain}</span>;
 
-        const [[words]] = wordChain;
-        return words.map((word, wordIdx) => {
-          const [romanji, wordAlternatives] = word;
+            const [[words]] = wordChain;
+            return words.map((word, wordIdx) => {
+              const [romanji, wordAlternatives] = word;
 
-          const wordReading =
-            "alternative" in wordAlternatives
-              ? wordAlternatives.alternative[0]! // just take the first one
-              : wordAlternatives;
+              const wordReading =
+                "alternative" in wordAlternatives
+                  ? wordAlternatives.alternative[0]! // just take the first one
+                  : wordAlternatives;
 
-          return (
-            <WordReadingHoverCard
-              key={`chain-${chainIdx}-word-${wordIdx}`}
-              wordReading={wordReading}
-              romanji={romanji}
-            />
-          );
-        });
-      }) ?? "An issue occured with displaying segmented lyric line."}
+              return (
+                <WordReadingHoverCard
+                  key={`chain-${chainIdx}-word-${wordIdx}`}
+                  wordReading={wordReading}
+                  romanji={romanji}
+                />
+              );
+            });
+          })
+        : line.words}
     </span>
   );
 });
