@@ -2,6 +2,7 @@ import { type lyrics, type lines } from "~/server/db/schema";
 import { type IchiranResponse } from "~/types/ichiran";
 import childProcess from "child_process";
 import path from "path";
+import { safeJsonParse } from "./utils";
 
 export type LyricsWithLines = typeof lyrics.$inferSelect & {
   lines: (typeof lines.$inferSelect)[];
@@ -13,12 +14,14 @@ export const getSentenceSegmentation = (sentence: string) => {
     encoding: "utf8",
   });
 
-  if (output.error) {
+  if (!output.stdout || output.error) {
     console.log("NORMAL ERROR: " + JSON.stringify(output.error));
     return [];
   }
-  console.log("NORMAL OUTPUT: " + JSON.stringify(output.stdout));
-  return JSON.parse(output.stdout) as IchiranResponse;
+
+  console.log("NORMAL OUTPUT: " + JSON.stringify(output));
+  console.log("NORMAL STDOUT: " + JSON.stringify(output.stdout));
+  return safeJsonParse<IchiranResponse>(output.stdout);
 };
 
 export const getLyricsPlusSegmentation = async (lyrics: LyricsWithLines) => ({
