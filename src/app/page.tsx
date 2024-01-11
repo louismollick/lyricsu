@@ -2,7 +2,8 @@ import Link from "next/link";
 import { getServerAuthSession } from "~/server/auth";
 import { type Metadata } from "next";
 import { Button } from "~/components/ui/button";
-import helloWorld from "~/defer/getIchiranSegmentation";
+import createWordSegmentation from "~/defer/createWordSegmentation";
+import childProcess from "child_process";
 
 export const metadata: Metadata = {
   title: "Lyricsu",
@@ -13,8 +14,17 @@ export const metadata: Metadata = {
   },
 };
 
+const test = () => {
+  const output = childProcess.spawnSync("./ichiran-cli", ["--help"], {
+    encoding: "utf8",
+  });
+  console.log("NORMAL OUTPUT: " + output.stdout);
+  console.log("NORMAL ERROR: " + JSON.stringify(output.error));
+};
+
 export default async function Lyrics() {
-  await helloWorld("unko");
+  await createWordSegmentation();
+  test();
   const session = await getServerAuthSession();
 
   if (!session) {
