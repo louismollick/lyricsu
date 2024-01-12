@@ -11,11 +11,6 @@ export const helloWorld = inngest.createFunction(
     const output = childProcess.spawnSync(cmd, ["--help"], {
       encoding: "utf8",
     });
-
-    console.log("INNGEST OUTPUT: " + JSON.stringify(output));
-    console.log("INNGEST STDOUT: " + JSON.stringify(output.stdout));
-    console.log("INNGEST ERROR: " + JSON.stringify(output.error));
-
-    return { event, body: "Hello, World!" };
+    return { event, body: `INNGEST OUTPUT: ${JSON.stringify(output)}` };
   },
 );
