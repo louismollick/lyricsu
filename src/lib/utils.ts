@@ -11,7 +11,7 @@ export const isString = (input: unknown): input is string =>
 
 export const safeJsonParse = <T>(str: string, fallback?: T) => {
   try {
-    return JSON.parse(str) as T;
+    return (JSON.parse(str) ?? fallback) as T;
   } catch {
     return fallback as T;
   }

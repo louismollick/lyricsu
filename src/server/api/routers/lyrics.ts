@@ -62,9 +62,11 @@ export const lyricsRouter = createTRPCRouter({
         });
       }
 
-      const lyricsPlusSegmentation = await triggerSegmentLyrics(existingLyrics);
+      const sentEvent = await triggerSegmentLyrics(existingLyrics);
 
-      return lyricsPlusSegmentation;
+      console.log(`SENT IDS: ${JSON.stringify(sentEvent.ids)}`);
+
+      return existingLyrics;
     }),
 });
 

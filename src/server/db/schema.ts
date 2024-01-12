@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   index,
   int,
+  json,
   mysqlTableCreator,
   primaryKey,
   serial,
@@ -10,6 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { type IchiranResponse } from "~/types/ichiran";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -45,6 +47,7 @@ export const lines = mysqlTable(
     lineNumber: int("line_number").notNull(),
     startTimeMs: int("start_time_ms").notNull().default(0),
     words: varchar("words", { length: 255 }).notNull(),
+    segmentation: json("json").$type<IchiranResponse>().default([]).notNull(),
   },
   (line) => ({
     compoundKey: primaryKey(line.lyricsId, line.lineNumber),

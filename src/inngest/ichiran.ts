@@ -3,6 +3,10 @@ import childProcess from "child_process";
 import { EventSchemas, Inngest } from "inngest";
 import { type LyricsWithLines } from "~/types/db";
 import { type IchiranResponse } from "~/types/ichiran";
+import { drizzleMiddleware } from "./drizzleMiddleware";
+import { and, eq } from "drizzle-orm";
+import { lines } from "~/server/db/schema";
+import { safeJsonParse } from "~/lib/utils";
 
 type LyricsuEventSchemas = {
   [EVENT_LYRICS_SEGMENT]: {
@@ -14,47 +18,57 @@ type LyricsuEventSchemas = {
 
 export const client = new Inngest({
   id: "lyricsu",
+  middleware: [drizzleMiddleware],
   schemas: new EventSchemas().fromRecord<LyricsuEventSchemas>(),
 });
 
 export const EVENT_LYRICS_SEGMENT = "lyricsu/lyrics.segment";
 
-export const triggerSegmentLyrics = async (lyrics: LyricsWithLines) => {
-  const sentEvent = await client.send({
+export const triggerSegmentLyrics = async (lyrics: LyricsWithLines) =>
+  await client.send({
     name: EVENT_LYRICS_SEGMENT,
     data: {
       lyrics,
     },
   });
 
-  console.log(`SENT IDS: ${JSON.stringify(sentEvent.ids)}}`);
-
-  // TODO: replace with sending back ids to client 
-  return {
-    ...lyrics,
-    lines: lyrics.lines.map((line) => ({
-      ...line,
-      segmentation: [] as IchiranResponse,
-    })),
-  };
-};
-
 export const segmentLyrics = client.createFunction(
   { id: "segment-lyrics" },
   { event: EVENT_LYRICS_SEGMENT },
-  async ({ event, step }) => {
-    const lines = await Promise.all(
+  async ({ event, step, db }) => {
+    const segmentedLines = await Promise.all(
       event.data.lyrics.lines.map((line) =>
         step.run(`segment-line: ${line.words}`, () => {
           const cmd = path.join(process.cwd(), "src/inngest/ichiran-cli");
           const output = childProcess.spawnSync(cmd, ["--help"], {
             encoding: "utf8",
           });
-          return output.stdout;
+          return {
+            lyricsId: line.lyricsId,
+            lineNumber: line.lineNumber,
+            segmentation: safeJsonParse<IchiranResponse>(output.stdout, []),
+          };
         }),
       ),
     );
 
-    return { event, body: lines };
+    await step.run("save-to-db", async () => {
+      console.log(segmentedLines);
+      await Promise.all(
+        segmentedLines.map(({ lyricsId, lineNumber, segmentation }) =>
+          db
+            .update(lines)
+            .set({ segmentation })
+            .where(
+              and(
+                eq(lines.lyricsId, lyricsId),
+                eq(lines.lineNumber, lineNumber),
+              ),
+            ),
+        ),
+      );
+    });
+
+    return { event, body: event.data.lyrics.id };
   },
 );
