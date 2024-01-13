@@ -35,7 +35,7 @@ export const triggerSegmentLyrics = async (lyrics: LyricsWithLines) =>
 export const segmentLyrics = client.createFunction(
   { id: "segment-lyrics" },
   { event: EVENT_LYRICS_SEGMENT },
-  async ({ event, step, db }) => {
+  async ({ event, step, logger, db }) => {
     const segmentedLines = await Promise.all(
       event.data.lyrics.lines.map((line) =>
         step.run(`segment-line: ${line.words}`, () => {
@@ -44,8 +44,8 @@ export const segmentLyrics = client.createFunction(
             encoding: "utf8",
           });
 
-          if (output.stderr) console.error("ERROR: " + output.stderr);
-          if (output.stdout) console.error("OUTPUT: " + output.stdout);
+          if (output.stderr) logger.error("ERROR: " + output.stderr);
+          if (output.stdout) logger.error("OUTPUT: " + output.stdout);
 
           return {
             lyricsId: line.lyricsId,
