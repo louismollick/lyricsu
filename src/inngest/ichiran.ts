@@ -40,9 +40,13 @@ export const segmentLyrics = client.createFunction(
       event.data.lyrics.lines.map((line) =>
         step.run(`segment-line: ${line.words}`, () => {
           const cmd = path.join(process.cwd(), "src/inngest/ichiran-cli");
-          const output = childProcess.spawnSync(cmd, ["--help"], {
+          const output = childProcess.spawnSync(cmd, ["-f", line.words], {
             encoding: "utf8",
           });
+
+          if (output.stderr) console.error("ERROR: " + output.stderr);
+          if (output.stdout) console.error("OUTPUT: " + output.stdout);
+
           return {
             lyricsId: line.lyricsId,
             lineNumber: line.lineNumber,
