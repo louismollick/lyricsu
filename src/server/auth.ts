@@ -131,6 +131,8 @@ export const authOptions: NextAuthOptions = {
       } as Session;
     },
   },
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   adapter: DrizzleAdapter(db, mysqlTable),
   providers: [
     SpotifyProvider({
