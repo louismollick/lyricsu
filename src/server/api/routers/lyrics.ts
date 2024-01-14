@@ -1,7 +1,7 @@
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { triggerSegmentLyrics } from "~/inngest/ichiran";
+import { triggerSegmentLyrics } from "~/lib/ichiran";
 import { getLyricsBySpotifyTrackId } from "~/lib/spotify";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { lines, lyrics } from "~/server/db/schema";
@@ -62,9 +62,7 @@ export const lyricsRouter = createTRPCRouter({
         });
       }
 
-      const sentEvent = await triggerSegmentLyrics(existingLyrics);
-
-      console.log(`SENT IDS: ${JSON.stringify(sentEvent.ids)}`);
+      triggerSegmentLyrics(existingLyrics);
 
       return existingLyrics;
     }),

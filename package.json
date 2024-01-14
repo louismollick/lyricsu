@@ -6,7 +6,7 @@
     "build": "next build",
     "db:push": "dotenv drizzle-kit push:mysql",
     "db:studio": "dotenv drizzle-kit studio",
-    "dev": "next dev",
+    "dev": "sst bind next dev",
     "lint": "next lint",
     "start": "next start"
   },
@@ -34,6 +34,7 @@
     "superjson": "^1.13.1",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
+    "ytdl-core": "^4.11.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -55,7 +56,10 @@
     "prettier": "^3.0.0",
     "prettier-plugin-tailwindcss": "^0.5.1",
     "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "sst": "^2.39.5",
+    "aws-cdk-lib": "2.110.1",
+    "constructs": "10.3.0"
   },
   "ct3aMetadata": {
     "initVersion": "7.22.0"
