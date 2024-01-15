@@ -22,22 +22,24 @@ export default function WordReadingHoverCard({
         <div>
           {romanji} / {wordReading.kana}
         </div>
-        {wordReading.components && (
+        {wordReading.components?.length && (
           <ol>
             {wordReading.components.map(
               (comp, compIdx) =>
-                comp.conj && (
+                !!comp.conj?.length && (
                   <ol key={`comp-${compIdx}`}>
                     {comp.conj.map((conj, conjIdx) => (
                       <li key={`conj-${conjIdx}`}>
                         <div>{conj.reading}</div>
-                        <ol>
-                          {conj.gloss.map((gloss, glossIdx) => (
-                            <li key={`conj-${conjIdx}-gloss-${glossIdx}`}>{`${
-                              glossIdx + 1
-                            }. ${gloss.pos} ${gloss.gloss}`}</li>
-                          ))}
-                        </ol>
+                        {!!conj.gloss?.length && (
+                          <ol>
+                            {conj.gloss.map((gloss, glossIdx) => (
+                              <li key={`conj-${conjIdx}-gloss-${glossIdx}`}>{`${
+                                glossIdx + 1
+                              }. ${gloss.pos} ${gloss.gloss}`}</li>
+                            ))}
+                          </ol>
+                        )}
                       </li>
                     ))}
                   </ol>
@@ -45,23 +47,25 @@ export default function WordReadingHoverCard({
             )}
           </ol>
         )}
-        {wordReading.conj && (
+        {!!wordReading.conj?.length && (
           <ol>
             {wordReading.conj.map((conj, conjIdx) => (
               <li key={`conj-${conjIdx}`}>
                 <div>{conj.reading}</div>
-                <ol>
-                  {conj.gloss.map((gloss, glossIdx) => (
-                    <li key={`conj-${conjIdx}-gloss-${glossIdx}`}>{`${
-                      glossIdx + 1
-                    }. ${gloss.pos} ${gloss.gloss}`}</li>
-                  ))}
-                </ol>
+                {!!conj.gloss?.length && (
+                  <ol>
+                    {conj.gloss.map((gloss, glossIdx) => (
+                      <li key={`conj-${conjIdx}-gloss-${glossIdx}`}>{`${
+                        glossIdx + 1
+                      }. ${gloss.pos} ${gloss.gloss}`}</li>
+                    ))}
+                  </ol>
+                )}
               </li>
             ))}
           </ol>
         )}
-        {wordReading.gloss && (
+        {!!wordReading.gloss?.length && (
           <ol>
             {wordReading.gloss.map((gloss, idx) => (
               <li key={`gloss-${idx}`}>{`${idx + 1}. ${gloss.pos} ${

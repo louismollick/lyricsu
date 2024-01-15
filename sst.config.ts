@@ -1,3 +1,4 @@
+import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { type SSTConfig } from "sst";
 import { NextjsSite } from "sst/constructs";
 
@@ -10,7 +11,14 @@ export default {
   },
   stacks(app) {
     app.stack(function Site({ stack }) {
-      const site = new NextjsSite(stack, "site");
+      const site = new NextjsSite(stack, "site", {
+        timeout: "60 seconds",
+        cdk: {
+          server: {
+            architecture: Architecture.X86_64, // so that ichiran-cli works
+          },
+        },
+      });
 
       stack.addOutputs({
         SiteUrl: site.url,

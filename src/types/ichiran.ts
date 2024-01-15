@@ -39,7 +39,7 @@ export type Gloss = {
 export type Conj = {
   prop: Prop[];
   reading: string;
-  gloss: Gloss[];
+  gloss?: Gloss[];
   readok: boolean;
 };
 

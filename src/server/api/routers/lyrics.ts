@@ -1,7 +1,7 @@
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { triggerSegmentLyrics } from "~/lib/ichiran";
+// import { triggerSegmentLyrics } from "~/lib/ichiran";
 import { getLyricsBySpotifyTrackId } from "~/lib/spotify";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { lines, lyrics } from "~/server/db/schema";
@@ -62,7 +62,7 @@ export const lyricsRouter = createTRPCRouter({
         });
       }
 
-      triggerSegmentLyrics(existingLyrics);
+      // await triggerSegmentLyrics(existingLyrics);
 
       return existingLyrics;
     }),

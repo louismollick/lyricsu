@@ -1,7 +1,7 @@
 import "~/styles/globals.css";
 
 import { Inter } from "next/font/google";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import ClientProviders from "../components/clientProviders";
@@ -27,11 +27,11 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "bg-background dark relative flex h-screen flex-col font-sans antialiased",
+          "dark relative flex h-screen flex-col bg-background font-sans antialiased",
           inter.variable,
         )}
       >
-        <TRPCReactProvider headers={headers()}>
+        <TRPCReactProvider cookies={cookies().toString()}>
           <ClientProviders>{children}</ClientProviders>
         </TRPCReactProvider>
       </body>
