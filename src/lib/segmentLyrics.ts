@@ -4,6 +4,7 @@ import type { IchiranResponse } from "~/types/ichiran";
 export const segmentLyricLine = async (line: string) => {
   try {
     const res = await fetch(env.ICHIRAN_URL!, {
+      method: "POST",
       body: line,
     });
     if (!res.ok) return [] as IchiranResponse;

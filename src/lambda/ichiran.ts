@@ -1,4 +1,3 @@
-import path from "path";
 import childProcess from "child_process";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
@@ -14,10 +13,13 @@ export async function handler(
     };
   }
 
-  const cmd = path.join(process.cwd(), "ichiran-cli");
-  const result = childProcess.spawnSync(cmd, ["-f", event.body], {
-    encoding: "utf8",
-  });
+  const result = childProcess.spawnSync(
+    "src/lambda/ichiran-cli",
+    ["-f", event.body],
+    {
+      encoding: "utf8",
+    },
+  );
 
   if (result.error) {
     console.error(result.error);
