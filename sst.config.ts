@@ -1,6 +1,6 @@
-import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { type SSTConfig } from "sst";
-import { NextjsSite } from "sst/constructs";
+import { NextjsSite, Function } from "sst/constructs";
+import { env } from "~/env.mjs";
 
 export default {
   config(_input) {
@@ -11,12 +11,17 @@ export default {
   },
   stacks(app) {
     app.stack(function Site({ stack }) {
+      const ichiranLambda = new Function(stack, "MyFunction", {
+        handler: "src/lambda/ichiran.handler",
+        copyFiles: [{ from: "src/lambda/ichiran-cli" }],
+        url: true,
+      });
+
       const site = new NextjsSite(stack, "site", {
         timeout: "60 seconds",
-        cdk: {
-          server: {
-            architecture: Architecture.X86_64, // so that ichiran-cli works
-          },
+        environment: {
+          ...env,
+          ICHIRAN_URL: ichiranLambda.url!,
         },
       });
 

@@ -1,9 +1,11 @@
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { segmentLyricLine } from "~/lib/segmentLyrics";
 // import { triggerSegmentLyrics } from "~/lib/ichiran";
 import { getLyricsBySpotifyTrackId } from "~/lib/spotify";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { db } from "~/server/db";
 import { lines, lyrics } from "~/server/db/schema";
 
 export type LyricsWithLines = typeof lyrics.$inferSelect & {
@@ -62,9 +64,33 @@ export const lyricsRouter = createTRPCRouter({
         });
       }
 
-      // await triggerSegmentLyrics(existingLyrics);
+      const segmentedLyrics = {
+        ...existingLyrics,
+        lines: await Promise.all(
+          existingLyrics.lines.map(async (line) => ({
+            ...line,
+            segmentation: await segmentLyricLine(line.words),
+          })),
+        ),
+      };
 
-      return existingLyrics;
+      await Promise.all(
+        segmentedLyrics.lines.map(({ segmentation, lyricsId, lineNumber }) =>
+          db
+            .update(lines)
+            .set({
+              segmentation,
+            })
+            .where(
+              and(
+                eq(lines.lyricsId, lyricsId),
+                eq(lines.lineNumber, lineNumber),
+              ),
+            ),
+        ),
+      );
+
+      return segmentedLyrics;
     }),
 });
 
