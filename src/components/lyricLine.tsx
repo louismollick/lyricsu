@@ -1,10 +1,10 @@
 "use client";
 import React, { forwardRef } from "react";
 
-import { useSpotifyPlayer } from "~/context/spotifyPlayerContext";
 import { cn } from "~/lib/utils";
 import { type SegmentedLine } from "~/server/api/routers/lyrics";
 import WordReadingHoverCard from "./wordReadingHoverCard";
+import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 type Ref = HTMLSpanElement;
 type Props = {
@@ -16,7 +16,7 @@ export default forwardRef<Ref, Props>(function LyricLine(
   { line, active },
   ref,
 ) {
-  const { seek } = useSpotifyPlayer();
+  const { seek } = useGlobalAudioPlayer();
   return (
     <span
       key={line.lineNumber}
@@ -26,7 +26,7 @@ export default forwardRef<Ref, Props>(function LyricLine(
       onClick={(e) => {
         if (active) return; // Don't restart current line if you tap it
         e.stopPropagation();
-        void seek(Number(line.startTimeMs));
+        void seek(Number(line.startTimeMs) / 1000);
       }}
       dir="auto"
       ref={ref}

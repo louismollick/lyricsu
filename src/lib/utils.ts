@@ -16,3 +16,12 @@ export type ExpandRecursively<T> = T extends object
     ? { [K in keyof O]: ExpandRecursively<O[K]> }
     : never
   : T;
+
+const addTensDigit = (input: number) => (input < 10 ? "0" + input : input);
+
+export const toHHMMSS = (input: number) => {
+  const minutes = Math.floor(input / 60);
+  const seconds = Math.floor(input - minutes * 60);
+
+  return addTensDigit(minutes) + ":" + addTensDigit(seconds);
+};

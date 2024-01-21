@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import * as ytdl from "ytdl-core";
 
 export function GET(
-  req: Request,
+  _: Request,
   { params: { youtubeId } }: { params: { youtubeId: string } },
 ) {
   return ytdl

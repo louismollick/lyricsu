@@ -1,17 +1,17 @@
 "use client";
-import { useSpotifyPlayer } from "~/context/spotifyPlayerContext";
 import { useEffect, useRef, useState } from "react";
 import { type LyricsWithSegmentedLines } from "~/server/api/routers/lyrics";
 
 import { ScrollArea } from "~/components/ui/scroll-area";
 import LyricLine from "./lyricLine";
+import useAudioPosition from "~/hooks/useAudioPosition";
 
 export default function ScrollingLyrics({
   lyrics,
 }: {
   lyrics: LyricsWithSegmentedLines;
 }) {
-  const { position } = useSpotifyPlayer();
+  const position = useAudioPosition() * 1000;
   const [activeLineNumber, setActiveLineNumber] = useState(-1);
   const itemsRef = useRef<Map<number, HTMLElement>>(new Map());
 
