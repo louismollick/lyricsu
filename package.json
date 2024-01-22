@@ -6,9 +6,11 @@
     "build": "next build",
     "db:push": "dotenv drizzle-kit push:mysql",
     "db:studio": "dotenv drizzle-kit studio",
+    "sst:dev": "npx sst dev",
     "dev": "sst bind next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "deploy": "npx sst deploy --stage louismollick"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^0.3.14",
