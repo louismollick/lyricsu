@@ -33,6 +33,7 @@ export default function Player({
     mute,
     muted,
   } = useGlobalAudioPlayer();
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [ytSongUrl, setYtSongUrl] = useState<string>();
   const position = useAudioPosition();
   const positionHHMMSS = toHHMMSS(position);
@@ -50,12 +51,13 @@ export default function Player({
 
   useEffect(() => {
     console.log("loading!!!!", ytSongUrl);
-    if (!ytSongUrl) return;
+    if (!ytSongUrl || hasLoaded) return;
     load(ytSongUrl, {
       autoplay: true,
       format: "m4a",
     });
-  }, [load, ytSongUrl]);
+    setHasLoaded(true);
+  }, [hasLoaded, load, ytSongUrl]);
 
   return (
     <div className="flex h-20 justify-between gap-4 bg-gray-900 px-4 py-2 text-white">
