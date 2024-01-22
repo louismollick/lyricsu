@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { type LyricsWithSegmentedLines } from "~/server/api/routers/lyrics";
 
-import { ScrollArea } from "~/components/ui/scroll-area";
 import LyricLine from "./lyricLine";
 import useAudioPosition from "~/hooks/useAudioPosition";
+import ScrollContainer from "./scrollContainer";
 
 export default function ScrollingLyrics({
   lyrics,
@@ -33,10 +33,7 @@ export default function ScrollingLyrics({
   }, [lyrics.lines.length, position]);
 
   return (
-    <ScrollArea
-      className="flex h-full rounded-md border p-4"
-      viewportClassName="before:block before:h-[calc(50%-30px)] before:content-[''] after:block after:h-[calc(50%-30px)] after:content-['']"
-    >
+    <ScrollContainer>
       {lyrics.lines.map((line) => (
         <LyricLine
           key={line.lineNumber}
@@ -48,6 +45,6 @@ export default function ScrollingLyrics({
           }}
         />
       ))}
-    </ScrollArea>
+    </ScrollContainer>
   );
 }

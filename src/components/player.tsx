@@ -15,23 +15,30 @@ import {
   SpeakerLoudIcon,
   SpeakerOffIcon,
 } from "@radix-ui/react-icons";
+import { LoadingSpinner } from "./loadingSpinner";
 
 export default function Player({
   youtubeTrack,
 }: {
   youtubeTrack: YoutubeTrack;
 }) {
-  const { load, play, pause, playing, duration, seek, setVolume, mute, muted } =
-    useGlobalAudioPlayer();
+  const {
+    isReady,
+    load,
+    togglePlayPause,
+    playing,
+    duration,
+    seek,
+    setVolume,
+    mute,
+    muted,
+  } = useGlobalAudioPlayer();
   const [ytSongUrl, setYtSongUrl] = useState<string>();
   const position = useAudioPosition();
   const positionHHMMSS = toHHMMSS(position);
   const durationHHMMSS = toHHMMSS(duration);
 
-  const togglePlay = useCallback(
-    () => (playing ? pause() : play()),
-    [pause, play, playing],
-  );
+  const togglePlay = useCallback(togglePlayPause, [togglePlayPause]);
 
   useKeypress(" ", togglePlay);
 
@@ -51,7 +58,7 @@ export default function Player({
   }, [load, ytSongUrl]);
 
   return (
-    <div className="flex justify-between gap-4 bg-gray-900 px-4 py-2 text-white">
+    <div className="flex h-20 justify-between gap-4 bg-gray-900 px-4 py-2 text-white">
       <div className="flex flex-grow basis-0 items-center gap-2">
         <Image
           alt="Album Art"
@@ -77,7 +84,9 @@ export default function Player({
       <div className="flex flex-col">
         <div className="flex justify-center gap-2">
           <Button onClick={togglePlay} size="icon" variant="ghost">
-            {playing ? (
+            {!isReady ? (
+              <LoadingSpinner />
+            ) : playing ? (
               <>
                 <PauseIcon className="h-5 w-5" />
                 <span className="sr-only">Pause</span>
@@ -106,7 +115,7 @@ export default function Player({
 
       <div className="flex flex-grow basis-0 items-center justify-end">
         <Button onClick={() => mute(!muted)} size="icon" variant="ghost">
-          {muted ? (
+          {isReady && muted ? (
             <>
               <SpeakerOffIcon className="h-5 w-5" />
               <span className="sr-only">Unmute</span>
