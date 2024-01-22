@@ -18,16 +18,18 @@ export default async function Lyrics({
   params: { trackId: string };
 }) {
   const lyrics = await api.lyrics.getByTrackId.query(trackId);
+  const youtubeTrack =
+    await api.lyrics.getYoutubeTrackFromSpotifyId.query(trackId);
 
-  if (!lyrics) return "No Lyrics";
+  if (!lyrics) return "Could not find Lyrics for this Spotify song.";
+
+  if (!youtubeTrack?.youtubeId)
+    return "Could not find Youtube track for this Spotify song.";
 
   return (
     <>
       <ScrollingLyrics lyrics={lyrics} />
-      <Player
-        songUrl="/potage.mp3"
-        // trackUri={`spotify:track:${trackId}`}
-      />
+      <Player youtubeTrack={youtubeTrack} />
     </>
   );
 }

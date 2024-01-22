@@ -44,13 +44,6 @@ export interface Song {
 }
 
 export async function getSongFromYouTube(id?: string) {
-  // if (!isYoutubeURL(url) && !getYouTubeId(url)) {
-  //   throw new Error("Invalid YouTube URL");
-  // }
-
-  // // check cached music
-  // const id = getYouTubeId(url);
-
   if (!id) return null;
 
   const res = await fetch(`/api/ytdl/${id}`, {

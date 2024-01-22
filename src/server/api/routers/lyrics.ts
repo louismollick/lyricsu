@@ -6,6 +6,14 @@ import { getLyricsBySpotifyTrackId } from "~/lib/spotify";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { lines, lyrics } from "~/server/db/schema";
+import { searchMusics } from "node-youtube-music";
+import { SpotifyApi } from "@spotify/web-api-ts-sdk";
+import { env } from "~/env.mjs";
+
+const spotifyApi = SpotifyApi.withClientCredentials(
+  env.SPOTIFY_CLIENT_ID,
+  env.SPOTIFY_CLIENT_SECRET,
+);
 
 export type LyricsWithLines = typeof lyrics.$inferSelect & {
   lines: (typeof lines.$inferSelect)[];
@@ -80,7 +88,7 @@ export const lyricsRouter = createTRPCRouter({
   }),
   resegmentLyricsByTrackId: publicProcedure
     .input(z.string())
-    .query(async ({ input }) => {
+    .mutation(async ({ input }) => {
       const existingLyrics = await db.query.lyrics.findFirst({
         where: eq(lyrics.spotifyTrackId, input),
         with: {
@@ -108,9 +116,43 @@ export const lyricsRouter = createTRPCRouter({
         }),
       );
     }),
+  getYoutubeTrackFromSpotifyId: publicProcedure
+    .input(z.string())
+    .query(async ({ input }) => {
+      let spotifyTrack;
+      try {
+        spotifyTrack = await spotifyApi.tracks.get(input);
+      } catch (error) {
+        console.error(
+          `Could not find Spotify results for track id: ${input}`,
+          error,
+        );
+        return null;
+      }
+
+      const artist = spotifyTrack.artists
+        .map((artist) => artist.name)
+        .join(" ");
+
+      const youtubeSearchResults = await searchMusics(
+        `${artist} ${spotifyTrack.name}`,
+      );
+
+      const youtubeTrack = youtubeSearchResults.find((vid) => vid.youtubeId);
+
+      if (!youtubeTrack?.youtubeId) {
+        console.error(
+          `Could not find Youtube results for search: ${spotifyTrack.artists[0]?.name} ${spotifyTrack.name}`,
+        );
+        return null;
+      }
+      return youtubeTrack;
+    }),
 });
 
 export type LyricsRouter = typeof lyricsRouter;
 export type LyricsWithSegmentedLines =
   inferRouterOutputs<LyricsRouter>["getByTrackId"];
+export type YoutubeTrack =
+  inferRouterOutputs<LyricsRouter>["getYoutubeTrackFromSpotifyId"];
 export type SegmentedLine = LyricsWithSegmentedLines["lines"][number];

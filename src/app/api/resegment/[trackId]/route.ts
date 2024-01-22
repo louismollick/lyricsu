@@ -7,7 +7,7 @@ const handler = async (
   { params: { trackId } }: { params: { trackId: string } },
 ) => {
   try {
-    await api.lyrics.resegmentLyricsByTrackId.query(trackId);
+    await api.lyrics.resegmentLyricsByTrackId.mutate(trackId);
     return Response.json("Success!");
   } catch (cause) {
     if (cause instanceof TRPCError) {
