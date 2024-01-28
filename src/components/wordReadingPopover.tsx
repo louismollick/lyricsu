@@ -1,27 +1,45 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "~/components/ui/hover-card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { useHover } from "~/hooks/useHover";
 import type { WordReading } from "~/types/ichiran";
 
-export default function WordReadingHoverCard({
+export default function WordReadingPopover({
   wordReading,
   romanji,
 }: {
   wordReading: WordReading;
   romanji: string;
 }) {
+  const [open, setOpen] = useState(false);
+
+  const handleMouseEnter = () => {
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    setOpen(false);
+  };
+
   return (
-    <HoverCard openDelay={100} closeDelay={0}>
-      <HoverCardTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        asChild
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <span className="hover:underline">{wordReading.text}</span>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80 text-sm">
-        <div>
-          {romanji} / {wordReading.kana}
-        </div>
+      </PopoverTrigger>
+      <PopoverContent
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        side="top"
+        className="max-h-56 w-80 overflow-scroll text-sm italic"
+      >
+        <div className="text-base not-italic">{wordReading.kana}</div>
         {wordReading.components?.length && (
           <ol>
             {wordReading.components.map(
@@ -74,7 +92,7 @@ export default function WordReadingHoverCard({
             ))}
           </ol>
         )}
-      </HoverCardContent>
-    </HoverCard>
+      </PopoverContent>
+    </Popover>
   );
 }

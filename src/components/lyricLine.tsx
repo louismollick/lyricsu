@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 
 import { cn } from "~/lib/utils";
 import { type SegmentedLine } from "~/server/api/routers/lyrics";
-import WordReadingHoverCard from "./wordReadingHoverCard";
+import WordReadingHoverCard from "./wordReadingPopover";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 type Ref = HTMLSpanElement;
@@ -20,9 +20,12 @@ export default forwardRef<Ref, Props>(function LyricLine(
   return (
     <span
       key={line.lineNumber}
-      className={cn("block select-text text-6xl text-slate-700", {
-        "text-text-white": active,
-      })}
+      className={cn(
+        "block select-text text-2xl text-slate-700 md:text-4xl lg:text-6xl",
+        {
+          "text-text-white": active,
+        },
+      )}
       onClick={(e) => {
         if (active) return; // Don't restart current line if you tap it
         e.stopPropagation();

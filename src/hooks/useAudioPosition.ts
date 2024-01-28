@@ -1,27 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
+import { useInterval } from "./useInterval";
+
+const TICK_INTERVAL = 200; // ms
 
 export default function useAudioPosition() {
-  const frameRef = useRef<number>();
   const [pos, setPos] = useState(0);
   const { getPosition } = useGlobalAudioPlayer();
+  const { startInterval } = useInterval();
 
   useEffect(() => {
-    const animate = () => {
-      setPos(getPosition());
-      frameRef.current = requestAnimationFrame(animate);
-    };
-
-    frameRef.current = window.requestAnimationFrame(animate);
-
-    return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, [getPosition]);
+    startInterval(() => setPos(getPosition()), TICK_INTERVAL);
+  }, [getPosition, startInterval]);
 
   return pos;
 }

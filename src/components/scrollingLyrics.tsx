@@ -4,7 +4,6 @@ import { type LyricsWithSegmentedLines } from "~/server/api/routers/lyrics";
 
 import LyricLine from "./lyricLine";
 import useAudioPosition from "~/hooks/useAudioPosition";
-import ScrollContainer from "./scrollContainer";
 
 export default function ScrollingLyrics({
   lyrics,
@@ -33,7 +32,7 @@ export default function ScrollingLyrics({
   }, [lyrics.lines.length, position]);
 
   return (
-    <ScrollContainer>
+    <>
       {lyrics.lines.map((line) => (
         <LyricLine
           key={line.lineNumber}
@@ -45,6 +44,6 @@ export default function ScrollingLyrics({
           }}
         />
       ))}
-    </ScrollContainer>
+    </>
   );
 }
