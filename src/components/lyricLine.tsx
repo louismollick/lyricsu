@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 
 import { cn } from "~/lib/utils";
 import { type SegmentedLine } from "~/server/api/routers/lyrics";
-import WordReadingHoverCard from "./wordReadingPopover";
+import WordReadingPopover from "./wordReadingPopover";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 type Ref = HTMLSpanElement;
@@ -41,7 +41,7 @@ export default forwardRef<Ref, Props>(function LyricLine(
 
             const [[words]] = wordChain;
             return words.map((word, wordIdx) => {
-              const [romanji, wordAlternatives] = word;
+              const [_, wordAlternatives] = word;
 
               const wordReading =
                 "alternative" in wordAlternatives
@@ -49,10 +49,9 @@ export default forwardRef<Ref, Props>(function LyricLine(
                   : wordAlternatives;
 
               return (
-                <WordReadingHoverCard
+                <WordReadingPopover
                   key={`chain-${chainIdx}-word-${wordIdx}`}
                   wordReading={wordReading}
-                  romanji={romanji}
                 />
               );
             });

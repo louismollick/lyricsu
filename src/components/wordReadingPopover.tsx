@@ -1,18 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useHover } from "~/hooks/useHover";
 import type { WordReading } from "~/types/ichiran";
 
 export default function WordReadingPopover({
   wordReading,
-  romanji,
 }: {
   wordReading: WordReading;
-  romanji: string;
 }) {
   const [open, setOpen] = useState(false);
 

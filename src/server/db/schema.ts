@@ -26,9 +26,16 @@ export const lyrics = mysqlTable(
   {
     id: serial("id").primaryKey(),
     syncType: varchar("sync_type", { length: 255 }),
+    youtubeTrackId: varchar("youtube_track_id", { length: 255 })
+      .notNull()
+      .unique(),
     spotifyTrackId: varchar("spotify_track_id", { length: 255 })
       .notNull()
       .unique(),
+    songUrl: varchar("song_url", { length: 2047 }).notNull(),
+    thumbnailUrl: varchar("thumbnail_url", { length: 2047 }),
+    title: varchar("title", { length: 255 }),
+    artists: varchar("artists", { length: 255 }),
   },
   (lyrics) => ({
     spotifyTrackIdIdx: index("spotify_track_id_idx").on(lyrics.spotifyTrackId),

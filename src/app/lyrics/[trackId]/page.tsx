@@ -2,10 +2,10 @@ import { type Metadata } from "next";
 import Image from "next/image";
 import PositionSlider from "~/components/positionSlider";
 import VolumeControls from "~/components/volumeControls";
-import YtMusicPlayer from "~/components/ytMusicPlayer";
 import { api } from "~/trpc/server";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import ScrollingLyrics from "~/components/scrollingLyrics";
+import PlayerControls from "~/components/playerControls";
 
 // const SuspenseTrigger = () => {
 //   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -27,14 +27,9 @@ export default async function Lyrics({
 }: {
   params: { trackId: string };
 }) {
-  const [lyrics, youtubeTrack] = await Promise.all([
-    api.lyrics.getByTrackId.query(trackId),
-    api.lyrics.getYoutubeTrackFromSpotifyId.query(trackId),
-  ]);
+  const [lyrics, songUrl] = await api.lyrics.getByTrackId.query(trackId);
 
   if (!lyrics) return <p>Could not find Lyrics for this Spotify song.</p>;
-
-  if (!youtubeTrack?.youtubeId) return <p>Could not find Youtube Id.</p>;
 
   return (
     <>
@@ -50,7 +45,7 @@ export default async function Lyrics({
           <Image
             alt="Album Art"
             className="rounded-md object-cover"
-            src={youtubeTrack?.thumbnailUrl ?? ""}
+            src={lyrics?.thumbnailUrl ?? ""}
             style={{
               aspectRatio: "50/50",
               objectFit: "cover",
@@ -59,17 +54,13 @@ export default async function Lyrics({
             height={64}
           />
           <div className="flex flex-col">
-            <h3 className="truncate text-sm font-medium">
-              {youtubeTrack?.title}
-            </h3>
-            <p className="truncate text-xs">
-              {youtubeTrack?.artists?.map((artist) => artist.name).join(" ")}
-            </p>
+            <h3 className="truncate text-sm font-medium">{lyrics?.title}</h3>
+            <p className="truncate text-xs">{lyrics?.artists}</p>
           </div>
         </div>
 
         <div className="flex flex-col justify-center">
-          <YtMusicPlayer youtubeId={youtubeTrack?.youtubeId} />
+          <PlayerControls songUrl={songUrl} />
           <PositionSlider />
         </div>
 

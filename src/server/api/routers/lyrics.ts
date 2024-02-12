@@ -1,47 +1,32 @@
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { segmentLyricLine } from "~/lib/segmentLyricLine";
-import { getLyricsBySpotifyTrackId } from "~/lib/spotify";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { lines, lyrics } from "~/server/db/schema";
-import { searchMusics } from "node-youtube-music";
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
-import { env } from "~/env.mjs";
-
-const spotifyApi = SpotifyApi.withClientCredentials(
-  env.SPOTIFY_CLIENT_ID,
-  env.SPOTIFY_CLIENT_SECRET,
-);
+import getSegmentedLyricsFromSpotifyId from "~/lib/spotify/getSegmentedLyricsFromSpotifyId";
+import getYoutubeTrackFromSpotifyId from "~/lib/youtube/getYoutubeIdFromSpotifyId";
+import { segmentLyricLine } from "~/lib/segmentation/segmentLyricLine";
+import getSongUrlFromYoutubeId from "~/lib/youtube/getSongUrlFromYoutubeId";
 
 export type LyricsWithLines = typeof lyrics.$inferSelect & {
   lines: (typeof lines.$inferSelect)[];
 };
 
 const createNewLyrics = async (spotifyTrackId: string) => {
-  const lyricsFromAPI = await getLyricsBySpotifyTrackId(spotifyTrackId);
-
-  if (!lyricsFromAPI) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      cause: `Error response when querying lyrics for Spotify track ID ${spotifyTrackId}.`,
-    });
-  }
-
-  const segmentedLyrics = {
-    ...lyricsFromAPI.lyrics,
-    lines: await Promise.all(
-      lyricsFromAPI.lyrics.lines.map(async (line) => ({
-        ...line,
-        segmentation: await segmentLyricLine(line.words),
-      })),
-    ),
-  };
+  const [segmentedLyrics, youtubeTrack] = await Promise.all([
+    getSegmentedLyricsFromSpotifyId(spotifyTrackId),
+    getYoutubeTrackFromSpotifyId(spotifyTrackId),
+  ]);
 
   return await db.transaction(async (tx) => {
     const insertedLyrics = await tx.insert(lyrics).values({
       spotifyTrackId,
+      youtubeTrackId: youtubeTrack.youtubeId,
+      songUrl: "",
+      title: youtubeTrack.title,
+      artists: youtubeTrack.artists?.map((artist) => artist.name).join(" "),
+      thumbnailUrl: youtubeTrack.thumbnailUrl,
       syncType: segmentedLyrics.syncType,
     });
 
@@ -84,7 +69,11 @@ export const lyricsRouter = createTRPCRouter({
       });
     }
 
-    return existingLyrics;
+    const songUrl = await getSongUrlFromYoutubeId(
+      existingLyrics.youtubeTrackId,
+    );
+
+    return [existingLyrics, songUrl] as const;
   }),
   resegmentLyricsByTrackId: publicProcedure
     .input(z.string())
@@ -116,43 +105,9 @@ export const lyricsRouter = createTRPCRouter({
         }),
       );
     }),
-  getYoutubeTrackFromSpotifyId: publicProcedure
-    .input(z.string())
-    .query(async ({ input }) => {
-      let spotifyTrack;
-      try {
-        spotifyTrack = await spotifyApi.tracks.get(input);
-      } catch (error) {
-        console.error(
-          `Could not find Spotify results for track id: ${input}`,
-          error,
-        );
-        return null;
-      }
-
-      const artist = spotifyTrack.artists
-        .map((artist) => artist.name)
-        .join(" ");
-
-      const youtubeSearchResults = await searchMusics(
-        `${artist} ${spotifyTrack.name}`,
-      );
-
-      const youtubeTrack = youtubeSearchResults.find((vid) => vid.youtubeId);
-
-      if (!youtubeTrack?.youtubeId) {
-        console.error(
-          `Could not find Youtube results for search: ${spotifyTrack.artists[0]?.name} ${spotifyTrack.name}`,
-        );
-        return null;
-      }
-      return youtubeTrack;
-    }),
 });
 
 export type LyricsRouter = typeof lyricsRouter;
 export type LyricsWithSegmentedLines =
-  inferRouterOutputs<LyricsRouter>["getByTrackId"];
-export type YoutubeTrack =
-  inferRouterOutputs<LyricsRouter>["getYoutubeTrackFromSpotifyId"];
+  inferRouterOutputs<LyricsRouter>["getByTrackId"][0];
 export type SegmentedLine = LyricsWithSegmentedLines["lines"][number];
