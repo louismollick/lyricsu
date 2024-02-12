@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       #Define your envs needed for static generation:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-        SPOTIFY_SP_DC: ${{ secrets.SPOTIFY_SP_DC }}
-        ICHIRAN_CONNECTION: ${{ secrets.ICHIRAN_CONNECTION }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+      SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+      SPOTIFY_SP_DC: ${{ secrets.SPOTIFY_SP_DC }}
+      ICHIRAN_CONNECTION: ${{ secrets.ICHIRAN_CONNECTION }}
     steps:
       - name: Git clone the repository
         uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::109430059852:role/GitHub
-          role-duration-seconds: 14390 #adjust as needed for your build time
+          role-duration-seconds: 3600 #adjust as needed for your build time
           aws-region: us-east-1
       - name: Deploy app
         run: |
