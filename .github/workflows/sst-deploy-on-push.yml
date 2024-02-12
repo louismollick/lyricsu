@@ -32,4 +32,4 @@ jobs:
           aws-region: us-east-1
       - name: Deploy app
         run: |
-          npm i && npx sst deploy --stage prod
+          npm i && npx sst deploy --stage louismollick
