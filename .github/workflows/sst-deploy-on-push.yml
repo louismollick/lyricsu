@@ -32,5 +32,4 @@ jobs:
           aws-region: us-east-1
       - name: Deploy app
         run: |
-          echo $NEXTAUTH_URL
           npm i && npx sst deploy --stage prod

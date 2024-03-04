@@ -21,6 +21,13 @@ export default {
         timeout: "60 seconds",
         environment: {
           ICHIRAN_URL: ichiranLambda.url!,
+          DATABASE_URL: process.env.DATABASE_URL!,
+          NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET!,
+          NEXTAUTH_URL: process.env.NEXTAUTH_URL!,
+          SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID!,
+          SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET!,
+          SPOTIFY_SP_DC: process.env.SPOTIFY_SP_DC!,
+          ICHIRAN_CONNECTION: process.env.ICHIRAN_CONNECTION!,
         },
         bind: [ichiranLambda],
       });
