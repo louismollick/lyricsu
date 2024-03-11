@@ -1,4 +1,4 @@
-import { env } from "~/env.mjs";
+import { env } from "~/env.js";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { type MusicVideo, searchMusics } from "node-youtube-music";
 

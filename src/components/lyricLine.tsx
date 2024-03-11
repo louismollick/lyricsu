@@ -41,6 +41,7 @@ export default forwardRef<Ref, Props>(function LyricLine(
 
             const [[words]] = wordChain;
             return words.map((word, wordIdx) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const [_, wordAlternatives] = word;
 
               const wordReading =

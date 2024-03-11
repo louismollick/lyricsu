@@ -1,4 +1,4 @@
-import { env } from "~/env.mjs";
+import { env } from "~/env.js";
 import type { IchiranResponse } from "~/types/ichiran";
 
 export const segmentLyricLine = async (line: string) => {

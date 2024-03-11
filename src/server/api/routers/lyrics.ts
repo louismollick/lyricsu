@@ -20,7 +20,7 @@ const createNewLyrics = async (spotifyTrackId: string) => {
   ]);
 
   return await db.transaction(async (tx) => {
-    const insertedLyrics = await tx.insert(lyrics).values({
+    const [insertedLyrics] = await tx.insert(lyrics).values({
       spotifyTrackId,
       youtubeTrackId: youtubeTrack.youtubeId,
       songUrl: "",
@@ -28,12 +28,17 @@ const createNewLyrics = async (spotifyTrackId: string) => {
       artists: youtubeTrack.artists?.map((artist) => artist.name).join(" "),
       thumbnailUrl: youtubeTrack.thumbnailUrl,
       syncType: segmentedLyrics.syncType,
+    }).returning({ insertedId: lyrics.id })
+
+    if (!insertedLyrics?.insertedId) throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      cause: `Error when inserting lyrics.`,
     });
 
     await tx.insert(lines).values(
       segmentedLyrics.lines.map((l, lineNumber) => ({
         lineNumber,
-        lyricsId: insertedLyrics.insertId,
+        lyricsId: insertedLyrics.insertedId,
         startTimeMs: Number(l.startTimeMs),
         words: l.words,
         segmentation: l.segmentation,
