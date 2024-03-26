@@ -1,5 +1,5 @@
 import { TRPCError, type inferRouterOutputs } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
@@ -58,7 +58,9 @@ const getExistingLyrics = async (spotifyTrackId: string) =>
   await db.query.lyrics.findFirst({
     where: eq(lyrics.spotifyTrackId, spotifyTrackId),
     with: {
-      lines: true,
+      lines: {
+        orderBy: [asc(lines.lineNumber)]
+      },
     },
   });
 
