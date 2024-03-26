@@ -1,6 +1,6 @@
 import { type SSTConfig } from "sst";
 import { NextjsSite, Function } from "sst/constructs";
-import iamStack from "~/infra/iamStack";
+import githubActionsStack from "~/infra/githubActionsStack";
 
 export default {
   config(_input) {
@@ -10,7 +10,7 @@ export default {
     };
   },
   stacks(app) {
-    app.stack(iamStack).stack(function Site({ stack }) {
+    app.stack(githubActionsStack).stack(function Site({ stack }) {
       const ichiranLambda = new Function(stack, "ichiran", {
         handler: "src/lambda/ichiran.handler",
         copyFiles: [{ from: "src/lambda/ichiran-cli" }],

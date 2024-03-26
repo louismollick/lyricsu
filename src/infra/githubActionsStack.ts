@@ -2,8 +2,8 @@ import { Duration } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { type StackContext } from "sst/constructs";
 
-function IAM({ app, stack }: StackContext) {
-  if (app.stage === "louismollick") {
+function GithubActionsStack({ app, stack }: StackContext) {
+  if (app.stage === "prod") {
     const provider = new iam.OpenIdConnectProvider(stack, "GitHub", {
       url: "https://token.actions.githubusercontent.com",
       clientIds: ["sts.amazonaws.com"],
@@ -69,4 +69,4 @@ function IAM({ app, stack }: StackContext) {
   }
 }
 
-export default IAM;
+export default GithubActionsStack;
