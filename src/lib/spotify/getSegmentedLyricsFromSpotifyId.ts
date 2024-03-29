@@ -4,6 +4,7 @@ import getLyricsBySpotifyId from "./getLyricsBySpotifyId";
 const getSegmentedLyricsFromSpotifyId = async (spotifyTrackId: string) => {
   const lyricsFromAPI = await getLyricsBySpotifyId(spotifyTrackId);
 
+  const startTime = performance.now();
   const segmentedLyrics = {
     ...lyricsFromAPI.lyrics,
     lines: await Promise.all(
@@ -13,6 +14,7 @@ const getSegmentedLyricsFromSpotifyId = async (spotifyTrackId: string) => {
       })),
     ),
   };
+  console.log(`Finished all segmentLyricLine(s) in ${performance.now() - startTime} milliseconds.`)
 
   return segmentedLyrics;
 };

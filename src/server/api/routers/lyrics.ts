@@ -14,12 +14,13 @@ export type LyricsWithLines = typeof lyrics.$inferSelect & {
 };
 
 const createNewLyrics = async (spotifyTrackId: string) => {
+  const startTime = performance.now();
   const [segmentedLyrics, youtubeTrack] = await Promise.all([
     getSegmentedLyricsFromSpotifyId(spotifyTrackId),
     getYoutubeTrackFromSpotifyId(spotifyTrackId),
   ]);
 
-  return await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [insertedLyrics] = await tx.insert(lyrics).values({
       spotifyTrackId,
       youtubeTrackId: youtubeTrack.youtubeId,
@@ -52,10 +53,13 @@ const createNewLyrics = async (spotifyTrackId: string) => {
       },
     });
   });
+  console.log(`Finished createNewLyrics in ${performance.now() - startTime} milliseconds.`)
+  return result
 };
 
-const getExistingLyrics = async (spotifyTrackId: string) =>
-  await db.query.lyrics.findFirst({
+const getExistingLyrics = async (spotifyTrackId: string) => {
+  const startTime = performance.now();
+  const result = await db.query.lyrics.findFirst({
     where: eq(lyrics.spotifyTrackId, spotifyTrackId),
     with: {
       lines: {
@@ -63,6 +67,9 @@ const getExistingLyrics = async (spotifyTrackId: string) =>
       },
     },
   });
+  console.log(`Finished getExistingLyrics in ${performance.now() - startTime} milliseconds.`)
+  return result
+}
 
 export const lyricsRouter = createTRPCRouter({
   getByTrackId: publicProcedure.input(z.string()).query(async ({ input }) => {

@@ -2,6 +2,7 @@ import { type ISyncedLyricsResponse } from "~/types/spotify";
 import getSpotifyUserToken from "./getSpotifyUserToken";
 
 const getLyricsBySpotifyId = async (trackId: string) => {
+  const startTime = performance.now();
   const token = await getSpotifyUserToken();
   const res = await fetch(
     `https://spclient.wg.spotify.com/color-lyrics/v2/track/${trackId}?format=json&vocalRemoval=false&market=from_token`,
@@ -21,6 +22,7 @@ const getLyricsBySpotifyId = async (trackId: string) => {
     );
     throw new Error("Error when getting lyrics from Spotify");
   }
+  console.log(`Finished getLyricsBySpotifyId in ${performance.now() - startTime} milliseconds.`)
   return (await res.json()) as ISyncedLyricsResponse;
 };
 
