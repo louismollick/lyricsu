@@ -28,6 +28,9 @@ export default {
           ICHIRAN_CONNECTION: process.env.ICHIRAN_CONNECTION!,
         },
         bind: [ichiranLambda],
+        experimental: {
+          streaming: true,
+        }
       });
 
       stack.addOutputs({
