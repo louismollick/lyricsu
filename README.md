@@ -13,7 +13,7 @@ Core features:
 ## Stack
 - TanStack Start (React)
 - Tailwind CSS + shadcn-style UI components
-- `ytmusic-api` for search/song metadata
+- `youtubei.js` for YouTube Music search/song metadata
 - `ytdlp-nodejs` for media streaming/download
 - `@spotify/web-api-ts-sdk` for Spotify track matching
 - hosted Spotify lyrics API for synced lyrics
@@ -29,7 +29,15 @@ cp .env.example .env
 Required:
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
-- `SPOTIFY_LYRICS_API_URL` set to `https://lyrics.louismollick.com/api`
+- `SPOTIFY_LYRICS_API_URL` set to `https://spotify-lyrics-api.louismollick.com/` for public deployments
+
+Optional for reliable YouTube access on server deployments:
+- `YTDLP_COOKIES_PATH` pointing to a mounted Netscape-format `cookies.txt` file
+
+To generate the cookie file, follow the official `yt-dlp` guide:
+- [yt-dlp FAQ: How do I pass cookies to yt-dlp?](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
+
+This app prefers a mounted `cookies.txt` file. When `YTDLP_COOKIES_PATH` is set, both `yt-dlp` and `youtubei.js` use that same file.
 
 ## Local Development
 ```bash
@@ -53,7 +61,9 @@ Deploy the TanStack Start app to Vercel as a standard Node.js project.
 Set these project environment variables in Vercel:
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
-- `SPOTIFY_LYRICS_API_URL=https://lyrics.louismollick.com/api`
+- `SPOTIFY_LYRICS_API_URL=https://spotify-lyrics-api.louismollick.com/`
+
+If you deploy to a custom Node host or Docker instead of Vercel, also mount a YouTube `cookies.txt` file and set `YTDLP_COOKIES_PATH` to that in-container path.
 
 Then deploy with Vercel using the detected build settings for the repo.
 

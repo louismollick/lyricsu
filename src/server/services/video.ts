@@ -1,5 +1,7 @@
+import { existsSync } from 'node:fs'
 import type { SongSearchItem } from '../../lib/types/api'
-import { getYtMusic } from './ytmusic'
+import { getServerEnv } from '../env'
+import { getYouTubeInnertube } from './youtubei'
 import { getYtDlp } from './ytdlp'
 
 const IMAGE_EXTENSIONS = new Set([
@@ -14,14 +16,18 @@ const IMAGE_EXTENSIONS = new Set([
 ])
 const DIRECT_URL_REFRESH_BUFFER_MS = 30_000
 const DIRECT_URL_FALLBACK_TTL_MS = 5 * 60 * 1000
+const DEFAULT_YTDLP_COOKIES_PATH = '/app/secrets/youtube-cookies.txt'
 const directMediaUrlCache = new Map<string, { url: string; expiresAtMs: number }>()
 
 function pickBestThumbnail(
-  thumbnails: Array<{ url: string; width: number; height: number }> = [],
+  thumbnails: Array<{ url: string; width?: number | string; height?: number | string }> = [],
 ) {
   if (thumbnails.length === 0) return ''
 
-  const sorted = [...thumbnails].sort((a, b) => b.width * b.height - a.width * a.height)
+  const sorted = [...thumbnails].sort(
+    (a, b) =>
+      Number(b.width ?? 0) * Number(b.height ?? 0) - Number(a.width ?? 0) * Number(a.height ?? 0),
+  )
   return sorted[0]?.url || ''
 }
 
@@ -81,17 +87,39 @@ export function selectPlayableMediaUrl(candidates: string[]) {
   return nonImageByExtension?.candidate
 }
 
-export async function getVideoMetadata(videoId: string): Promise<SongSearchItem> {
-  const ytmusic = await getYtMusic()
-  const song = await ytmusic.getSong(videoId)
+function getYtDlpRequestOptions() {
+  const env = getServerEnv()
+  const cookiesPath = env.YTDLP_COOKIES_PATH || (
+    existsSync(DEFAULT_YTDLP_COOKIES_PATH) ? DEFAULT_YTDLP_COOKIES_PATH : undefined
+  )
 
   return {
-    videoId: song.videoId,
-    title: song.name,
-    artist: song.artist.name,
+    cookies: cookiesPath,
+    ignoreNoFormatsError: true,
+    jsRuntime: 'node' as const,
+  }
+}
+
+export async function getVideoMetadata(videoId: string): Promise<SongSearchItem> {
+  const youtube = await getYouTubeInnertube()
+  const track = await youtube.music.getInfo(videoId)
+
+  if (track.playability_status?.status && track.playability_status.status !== 'OK') {
+    const reason = track.playability_status.reason?.trim()
+    throw new Error(reason || `YouTube music track is not playable (${track.playability_status.status})`)
+  }
+
+  if (!track.basic_info.id || !track.basic_info.title) {
+    throw new Error('Failed to resolve YouTube Music track metadata')
+  }
+
+  return {
+    videoId: track.basic_info.id,
+    title: track.basic_info.title,
+    artist: track.basic_info.author || track.basic_info.channel?.name || 'Unknown artist',
     album: null,
-    durationSec: song.duration,
-    thumbnailUrl: pickBestThumbnail(song.thumbnails),
+    durationSec: track.basic_info.duration ?? 0,
+    thumbnailUrl: pickBestThumbnail(track.basic_info.thumbnail),
   }
 }
 
@@ -110,9 +138,10 @@ export async function getDirectMediaUrl(videoId: string, options: GetDirectMedia
   }
 
   const ytdlp = await getYtDlp()
-  const watchUrl = `https://music.youtube.com/watch?v=${videoId}`
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`
 
   const directUrls = await ytdlp.getDirectUrlsAsync(watchUrl, {
+    ...getYtDlpRequestOptions(),
     format: 'bestaudio/best',
   })
   const chosen = selectPlayableMediaUrl(directUrls)
