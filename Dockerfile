@@ -24,6 +24,7 @@ RUN apt-get update \
 
 COPY --from=build /app/.output ./.output
 COPY --from=build /app/package.json ./package.json
+COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000
 CMD ["node", ".output/server/index.mjs"]
